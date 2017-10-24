@@ -24,10 +24,10 @@ import os
 # Heroku, sensible DB connection settings are stored in environment variables.
 MONGO_HOST = os.environ.get('MONGO_HOST', 'localhost')
 MONGO_PORT = os.environ.get('MONGO_PORT', 27017)
-MONGO_USERNAME = os.environ.get('MONGO_USERNAME', 'user')
-MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'user')
+# MONGO_USERNAME = os.environ.get('MONGO_USERNAME', 'user')
+# MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD', 'user')
 MONGO_DBNAME = os.environ.get('MONGO_DBNAME', 'evedemo')
-
+MONGO2_DBNAME = 'evedemo2'
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
@@ -95,6 +95,57 @@ people = {
     }
 }
 
+people2 = {
+    # 'title' tag used in item links.
+    'item_title': 'person',
+
+    # by default the standard item entry point is defined as
+    # '/people/<ObjectId>/'. We leave it untouched, and we also enable an
+    # additional read-only entry point. This way consumers can also perform GET
+    # requests at '/people/<lastname>/'.
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'lastname'
+    },
+
+    # Schema definition, based on Cerberus grammar. Check the Cerberus project
+    # (https://github.com/pyeve/cerberus) for details.
+    'schema': {
+        'firstname': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 10,
+        },
+        'lastname': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 15,
+            'required': True,
+            # talk about hard constraints! For the purpose of the demo
+            # 'lastname' is an API entry-point, so we need it to be unique.
+            'unique': True,
+        },
+        # 'role' is a list, and can only contain values from 'allowed'.
+        'role': {
+            'type': 'list',
+            'allowed': ["author", "contributor", "copy"],
+        },
+        # An embedded 'strongly-typed' dictionary.
+        'location': {
+            'type': 'dict',
+            'schema': {
+                'address': {'type': 'string'},
+                'city': {'type': 'string'}
+            },
+        },
+        'born': {
+            'type': 'datetime',
+        },
+    },
+
+    'mongo_prefix': 'MONGO2'
+}
+
 works = {
     # if 'item_title' is not provided Eve will just strip the final
     # 's' from resource name, and use it as the item_title.
@@ -133,4 +184,6 @@ works = {
 DOMAIN = {
     'people': people,
     'works': works,
+    'people2': people2,
 }
+XML = False
